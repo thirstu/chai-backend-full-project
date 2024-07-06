@@ -1,0 +1,16 @@
+{
+  "name": "chai-backend-full-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "javascript",
+    "backend",
+    "yop(hai)"
+  ],
+  "author": "ajay",
+  "license": "ISC"
+}
