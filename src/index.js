@@ -38,7 +38,13 @@ import connectDB from "./db/index.js";
 
 
 connectDB().then(response=>{
+
+    app.on('error',(error)=>{
+        console.error("Error: " + error);
+        throw error;
+    })
+
     app.listen(process.env.PORT || 8000, ()=>{
         console.log(`src\index.js||server listening on port: ${process.env.PORT}`);
     })
-}).catch(err=>console.log("chai-backend-full-project\src\index.js|||||MONGODB connection failed: " , err));
+}).catch(err=>console.log("chai-backend-full-project\src\index.js|||||MONGODB connection failed: " , err));  
