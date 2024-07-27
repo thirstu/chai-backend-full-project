@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import { DB_NAME } from "../constants.js";
-import express from "express";
-const app = express();
+import {app } from '../app.js'
+// import express from "express";
+// const app = express();
 
 import dotenv from 'dotenv';
 dotenv.config({
@@ -17,13 +18,14 @@ try{
    ///////////////////////////////////////
        app.on("error",(err)=>{
         console.log("from:index/express/ifi/app.on/Error: ", err);
-        throw err;
+        throw ("from:index/express/ifi/app.on/Error: ",err);
        });
    ///////////////////////////////////////
 
-       app.listen(process.env.PORT,()=>{
-        console.log(`App listening on ${process.env.PORT}`);
-       });
+    //    app.listen(process.env.PORT,()=>{
+    //     console.log(`src\db\index.js//App listening on ${process.env.PORT}`);
+        
+    //    });
    ///////////////////////////////////////
 
 //    console.log(`\n MongoDB connected ! ! DB HOST: ${connectionInstance.connection.host}`);

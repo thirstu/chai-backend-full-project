@@ -27,7 +27,7 @@ const uploadOnCloudinary= async (localFilePath)=>{
         return response;
     }catch(err){
         fs.unlinkSync(localFilePath) // removes temperary localy stored file from our server
-        console.log(err);
+        console.error("src\utills\cloudinary.js",err);
         return null;
     }
 
