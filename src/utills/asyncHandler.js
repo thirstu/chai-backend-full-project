@@ -1,14 +1,18 @@
 const asyncHandler =(requestHandler)=>{
-   return (err,req,res,next)=>{
-        Promise.resolve(requestHandler(req,res,next)).catch(err=>next(err));
+   return (req,res,next)=>{
+        Promise.resolve(requestHandler(req,res,next)).catch(next);
     }
 };
 
 export {asyncHandler};
 
+
+
+
+
 //////////////////////////////////
+/////////////try/catch/////////////////////
 //////////////////////////////////
-///////////////////////////////////
 
 // const asyncHandler= (fn)=>async(err,req,res,next)=>{
 //     try{
@@ -23,4 +27,12 @@ export {asyncHandler};
 //     }
 // };
 // export {asyncHandler};
-//////////////////////////////////
+//////////////////////////////////////////////////////
+// const asyncHandler =(requestHandler)=>{
+//     return (err,req,res,next)=>{
+//          Promise.resolve(requestHandler(req,res,next)).catch(err=>next(err));
+//      }
+//  };
+ 
+//  export {asyncHandler};
+////////////////////////////////////////////////////////
