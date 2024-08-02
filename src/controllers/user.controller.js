@@ -56,25 +56,25 @@ const registerUser = asyncHandler(async (req,res)=>{
     // console.dir(req.body);
 
    const avatarLocalPath= req.files?.avatar[0]?.path;
-   const coverImgLocalPath= req.files?.coverImg[0]?.path;
+  //  const coverImgLocalPath= req.files?.coverImg[0]?.path;
   //  console.log(req.files);
 /////////////////////////////////////////////////////////
 
-// let coverImageLocalPath;
-// if(req.files&& Array.isArray(req.files.coverImg)&&req.files.coverImg.length>0){
-//   coverImageLocalPath=req.files.coverImg[0].path
-// }
+let coverImgLocalPath;
+if(req.files&& Array.isArray(req.files.coverImg)&&req.files.coverImg.length>0){
+  coverImgLocalPath=req.files.coverImg[0].path
+}
 // /////////////////////////////////////////////////////////
 // let avatarImageLocalPath;
 // if(req.files&& Array.isArray(req.files.avatar)&&req.files.avatar.length>0){
 //   avatarImageLocalPath=req.files.avatar[0].path
 // }
 // console.log("ckecking",avatarLocalPath,coverImgLocalPath);
-   if(!coverImgLocalPath){
-    throw new ApiError(400,"avatar file is required")
+  //  if(!coverImgLocalPath){
+  //   throw new ApiError(400,"avatar file is required")
 
-   }
-  // console.log(`avatarLocalPath===${avatarLocalPath}||||||||||,coverImgLocalPath===${coverImgLocalPath}||||||||||,coverImageLocalPath===${coverImageLocalPath}||||||||||,avatarImageLocalPath===${avatarImageLocalPath}`);
+  //  }
+  // console.log(`avatarLocalPath===${avatarLocalPath}||||||||||,coverImgLocalPath===${coverImgLocalPath}||||||||||,coverImgLocalPath===${coverImgLocalPath}||||||||||,avatarImageLocalPath===${avatarImageLocalPath}`);
 
    if(!avatarLocalPath){
     throw new ApiError(400,"avatar file is required")
