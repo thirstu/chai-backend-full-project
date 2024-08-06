@@ -1,15 +1,18 @@
-import { User } from "../models/user.models";
-import { ApiError } from "../utills/ApiError";
-import { asyncHandler } from "../utills/asyncHandler";
+import { User } from "../models/user.models.js";
+import { ApiError } from "../utills/ApiError.js";
+import { asyncHandler } from "../utills/asyncHandler.js";
 import jwt from "jsonwebtoken";
 
 
 
-export const verifyJWT=asyncHandler(async(req,res,next)=>{
+export const verifyJWT=asyncHandler(async(req,_,next)=>{
 try {
+
+    // console.log("verifyJWT=asyncHandler");
     ////here we are taking access token from (req.cookies) or  as in mobile application we do not have access of cookies so we are also checking for (req.header("Authorization")) and we are also removing things which we do not need using select method
     const token=req.cookies?.accessToken||req.header("Authorization")?.replace("Bearer ", "");
-    
+    // console.log("verifyJWT",token,req.header("Authorization"));
+    // console.log("verifyJWT",req.cookies);
     ////checking if we have accessToken
     if(!token){
         throw new ApiError(401,"Unauthorized request")

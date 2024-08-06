@@ -12,7 +12,7 @@ dotenv.config({
 
 const connectDB =async ()=>{
 try{
-    // console.log(process.env.MONGODB_URL);
+    // console.log("1111111111//////src\db\index.js/////database");
     // console.log(DB_NAME);
    const connectionInstance= await mongoose.connect(`${process.env.MONGODB_URL}//${DB_NAME}`);
    ///////////////////////////////////////

@@ -1,6 +1,11 @@
 const asyncHandler =(requestHandler)=>{
    return (req,res,next)=>{
-        Promise.resolve(requestHandler(req,res,next)).catch(next);
+    // console.log("asyncBefore",req.body,"helolllllllllllll",res.body,next,"helolllllllllllll",);
+
+     const result=Promise.resolve(requestHandler(req,res,next)).catch(next);
+    // console.log("asyncAfter",req.body,"helolllllllllllll",res.body,next,"helolllllllllllll",result.then(res=>res),"helolllllllllllll");
+
+    return result;
     }
 };
 
