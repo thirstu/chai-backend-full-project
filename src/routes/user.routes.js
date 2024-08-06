@@ -34,3 +34,21 @@ router.route("/refresh-token").post(refreshAccessToken)
 
 export default router
 ///////////////////////////////////////////////////
+
+
+/*
+Content-Type: Set this to application/json.
+Click on the Headers tab.
+Add a key Content-Type with the value application/json.
+/////////////////////////////////////////////////////
+JSON Body: Add the refreshToken in the body if you are not using cookies.
+Click on the Body tab.
+Select raw.
+Select JSON from the dropdown.
+Enter your JSON payload, e.g.,
+json
+Copy code
+{
+  "refreshToken": "your-refresh-token"
+}
+*/ 
