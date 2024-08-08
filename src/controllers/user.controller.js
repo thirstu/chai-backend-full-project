@@ -168,7 +168,7 @@ const loginUser=asyncHandler(async (req,res)=>{
 
   console.log(accessToken,refreshToken);
 
-/////here we are again calling database because before when we called or accessed database (user)s refresh token is empty because we (const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id);) created a refresh token after creating (user) on line 143 and refreshtoken on line 159 ====so we two ways to do this one is on line 162 and other way is to simply update the refresh token in (user) ,and we also removed (password refreshToken) using select method
+/////here we are again calling database because before when we called or accessed database (user)s refresh token is empty because we (const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id);) created a refresh token after creating (user) on line 143 and refreshtoken on line 159 ====so we have two ways to do this one is on line 162 and other way is to simply update the refresh token in (user) ,and we also removed (password refreshToken) using select method
   const loggedInUser=await User.findById(user._id).select("-password -refreshToken");
 
   ////send (access and refresh token) in cookies //////////
@@ -297,7 +297,121 @@ throw new ApiError(401,err?.message||"Invalid refresh token")
 
 })
 
-export {registerUser,loginUser,logoutUser,refreshAccessToken};
+
+const changeCurrentPassword =asyncHandler(async(req,res)=>{
+  ////taking oldPassword, newPassword and newConfirmPassword which is coming from client side (user) 
+  const {oldPassword,newPassword,newConfirmPassword} = req.body;
+
+  //// checking if newPassword and newConfirmPassword are same
+  if(!(newPassword === newConfirmPassword))return res.status(200)
+    .json(new ApiError(401,"newPassword and newConfirmPassword are not equal or same")) ;
+
+  ////finding user in database using id of current user who is sending the request and who is currently logged in (this is not for forgot password i think! currently)
+  const user=await User.findById(req.user?._id);
+  
+  ////matching the old password from the user to the one stored in the database
+  const isPasswordCorrect= await user.isPasswordCorrect(oldPassword);
+  ////if password is incorrect
+  if(!isPasswordCorrect){
+    throw new ApiError(400,"Invalid old password")
+
+  }
+/////if the password is correct then we are setting the old password in the database to the new password from the user
+  user.password = newPassword
+  ////here not validating all the data before saving it as only info being changed is password which already has been checked
+  await user.save({validateBeforeSave:false});
+
+  ////response to the user
+  return res.status(200)
+  .json(new ApiResponse(200,{},"Password change successfully"))
+
+});
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  return res.status(200)
+  .json(200,req.user,"cure user fetched successfully")
+})
+
+const updateAccountDetails=asyncHandler(async (req, res) => {
+  const {fullName,email}=req.body;
+
+  if(!fullName||!email){
+    throw new ApiError(400,"All fields are required")
+  }
+
+ const user= User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set:{
+        fullName,
+        email,
+
+      }
+    },
+    {new:true}
+
+  ).select("-password")
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200,{user},"Account details updated successfully"))
+})
+
+const updateUserAvatar=asyncHandler(async (req, res) => {
+  const avatarLocalPath= req.file?.path;
+  if(!avatarLocalPath){
+    throw new ApiError(400,"avatar file is missing")
+  }
+
+  const avatar= await uploadOnCloudinary(avatarLocalPath);
+  if(!avatar.url){
+    throw new ApiError(400,"error while uploading avatar")
+
+  }
+
+  const user=await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set:{
+        avatar: avatar.url
+      }
+    },
+    {new:true}
+  ).select("-password")
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200,user,"avatar updated successfully"))
+})
+
+const updateUserCoverImg=asyncHandler(async (req, res) => {
+  const coverImgLocalPath= req.file?.path;
+  if(!coverImgLocalPath){
+    throw new ApiError(400,"coverImg file is missing")
+  }
+
+  const coverImg= await uploadOnCloudinary(coverImgLocalPath);
+  if(!coverImg.url){
+    throw new ApiError(400,"error while uploading coverImg")
+
+  }
+
+ const user= await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set:{
+        coverImg: coverImg.url
+      }
+    },
+    {new:true}
+  ).select("-password")
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200,user,"coverImg updated successfully"))
+})
+
+export {registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUser,updateAccountDetails,updateUserAvatar,updateUserCoverImg};
 
 
 
