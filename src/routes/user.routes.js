@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controller.js"
+import { registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUser,updateAccountDetails,updateUserAvatar,updateUserCoverImg } from "../controllers/user.controller.js"
 import {upload } from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 const router= Router()
@@ -22,12 +22,24 @@ router.route("/register").post(
 )
 ///////////////////////////////////////////////////
 
-router.route("/login").post(loginUser)
+router.route("/login").post(loginUser);
+router.route("/getCurrentUser").post(verifyJWT ,getCurrentUser);
+router.route("/updateAccountDetails").post(verifyJWT ,updateAccountDetails);
+router.route("/updateUserAvatar").post(
+    verifyJWT ,
+    upload.single("avatar")
+    ,
+    updateUserAvatar);
+router.route("/updateUserCoverImg").post(
+    verifyJWT ,
+    upload.single("coverImg"),
+    updateUserCoverImg
+);
 ///////////////////////////////////////////////////
 ////here we are logging out user using (logoutUser) method and just before executing the logout method we are using an middleware (verifyJWT) to verify token and other info in the middleware go checkout for more info
 ////secured routes
 router.route("/logout").post(verifyJWT ,logoutUser);
-router.route("/refresh-token").post(refreshAccessToken)
+router.route("/refresh-token").post(refreshAccessToken);
 
 
 

@@ -192,9 +192,9 @@ const loginUser=asyncHandler(async (req,res)=>{
 
 })
 
-////here we logging out user by finding user using (findOneAndUpdate) method this method finds using id and updates data ,($set) is an operator using this we are removing or setting new value and after that in next parameter we are using (new:true) so that in response new get send to user in which refreshToken is removed or set to undefined
-const logoutUser=asyncHandler(async(req,res)=>{
 
+const logoutUser=asyncHandler(async(req,res)=>{
+////here we logging out user by finding user using (findOneAndUpdate) method this method finds using id and updates data ,($set) is an operator using this we are removing or setting new value and after that in next parameter we are using (new:true) so that in response new get send to user in which refreshToken is removed or set to undefined
   await User.findOneAndUpdate(
     req.user._id,
     {
@@ -328,29 +328,68 @@ const changeCurrentPassword =asyncHandler(async(req,res)=>{
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+/**
+ * 1-here we made an controller which gives us the current user,
+ * 2-but for it to work properly we need (req) to contain user inside it
+ * and to make happen either you use auth middleware (verifyJWT) ----(router.route("/
+ * getCurrentUser").post(verifyJWT ,getCurrentUser)) ----which sets user 
+ * into req,
+ * or get it here using id and finding in (User) ,(making and database
+ * query something like that) 
+ * //Note: normally this controller dose not return anything on its own 
+ * at this point
+ * 
+ */
+
+  console.log("getCurrentUser------------------",req.user);
+  console.log("getCurrentUser------------------",req.body);
+  ////returning  response which contains the current user
   return res.status(200)
   .json(200,req.user,"cure user fetched successfully")
 })
 
 const updateAccountDetails=asyncHandler(async (req, res) => {
+  /**
+ * 1-here we made an controller which updates account details but to 
+ * do that it needs (user in the req (req.user))
+ * 2-so make sure req contains the user inside it and to make happen 
+ * either you use auth middleware (verifyJWT) ----(router.route("/updateAccountDetails").post(verifyJWT ,updateAccountDetails)) ----which sets user 
+ * into req,
+ * 
+ * or get it here using id and finding in (User) ,(making and database
+ * query something like that) 
+ * //Note: normally this controller dose not return anything on its own 
+ * at this point
+ * 
+ */
+  console.log("updateAccountDetails------req.body------------",req.body);
+  console.log("updateAccountDetails-------req.user-----------",req.user);
+////taking details from req.body
   const {fullName,email}=req.body;
 
+  ////checking if we got the details
   if(!fullName||!email){
     throw new ApiError(400,"All fields are required")
   }
-
- const user= User.findByIdAndUpdate(
+////finding user by id
+ const user=await User.findByIdAndUpdate(
+  //// checking if user exist in req or not and taking id from the current user
     req.user?._id,
     {
+      ////setting or updating old details to new details which we extracted from req.body
+      /////using ($) sign we can use MongoDB, the dollar sign ($) is commonly used in various operators and commands to perform operations on documents in collections set,push,pull,match,group,sort etc.
       $set:{
         fullName,
         email,
 
       }
     },
+    ////will return updated details using this (new:true)
     {new:true}
 
+    /////removing password using select method
   ).select("-password")
+  console.log("updateAccountDetails------------------",user);
 
   return res
   .status(200)
@@ -358,26 +397,58 @@ const updateAccountDetails=asyncHandler(async (req, res) => {
 })
 
 const updateUserAvatar=asyncHandler(async (req, res) => {
+    /**
+ * 1-here we made an controller which updates avatar file but to 
+ * do that it needs (user in the req (req.user))
+ * 2-so make sure req contains the user inside it and to make happen 
+ * either you use auth middleware (verifyJWT) ----
+ * (router.route("/updateUserAvatar").post(
+    verifyJWT ,
+    upload.single("avatar")
+    ,
+    updateUserAvatar);) 
+    ----which sets user 
+ * into req,
+ * 
+ * or get it here using id and finding in (User) ,(making and database
+ * query something like that) 
+ * //Note: without user it will not be able update anything except uploading avatar file on cloudinary
+ * 
+ */
+
+  ////taking avatar file from req , from user
   const avatarLocalPath= req.file?.path;
+  ////checking if we got the path
   if(!avatarLocalPath){
     throw new ApiError(400,"avatar file is missing")
   }
 
+  ////uploading avatar file to cloudinary which was temporarily stored in local storage (on our server) and getting path to that file from cloudinary
   const avatar= await uploadOnCloudinary(avatarLocalPath);
+////checking if we got the url from cloudinary where it uploaded ore avatar file
   if(!avatar.url){
     throw new ApiError(400,"error while uploading avatar")
 
   }
 
+////finding by id and updating at the same time
   const user=await User.findByIdAndUpdate(
+    ////providing id by extracting user from req and id from user
     req.user?._id,
     {
+      ////setting old avatar path (url) to new one
       $set:{
         avatar: avatar.url
       }
     },
+
+    ////using  (new:true) so we get the updated value
     {new:true}
+
+    /////removing password using select method
   ).select("-password")
+
+
 
   return res
   .status(200)
@@ -385,25 +456,59 @@ const updateUserAvatar=asyncHandler(async (req, res) => {
 })
 
 const updateUserCoverImg=asyncHandler(async (req, res) => {
+     /**
+ * 1-here we made an controller which updates coverImg file but to 
+ * do that it needs (user in the req (req.user))
+ * 2-so make sure req contains the user inside it and to make happen 
+ * either you use auth middleware (verifyJWT) ----
+ * (router.route("/updateUserCoverImg").post(
+    verifyJWT ,
+    upload.single("coverImg")
+    ,
+    updateUserCoverImg);) 
+    ----which sets user 
+ * into req,
+ * 
+ * or get it here using id and finding in (User) ,(making and database
+ * query something like that) 
+ * //Note: without user it will not be able update anything except uploading coverImg file on cloudinary
+ * 
+ */
+  // console.log("updateAccountDetails------req.body------------",req.body);
+  // console.log("updateAccountDetails-------req.user-----------",req.user);
+  // console.log("updateAccountDetails-------req.user-----------",req.file);
+    ////taking coverImg file from req , from user
   const coverImgLocalPath= req.file?.path;
+  ////checking coverImg path
   if(!coverImgLocalPath){
     throw new ApiError(400,"coverImg file is missing")
   }
 
+  ////uploading coverImg file to cloudinary which was temporarily stored in local storage (on our server) and getting path to that file from cloudinary
   const coverImg= await uploadOnCloudinary(coverImgLocalPath);
+
+  ////checking for path to the img which was just uploaded
   if(!coverImg.url){
     throw new ApiError(400,"error while uploading coverImg")
 
   }
 
- const user= await User.findByIdAndUpdate(
+ 
+
+    ////finding by id and updating at the same time
+  const user= await User.findByIdAndUpdate(
+    ////providing id by extracting user from req and id from user
     req.user?._id,
     {
+      ////setting old avatar path (url) to new one
       $set:{
         coverImg: coverImg.url
       }
     },
+    ////using  (new:true) so we get the updated value
     {new:true}
+    /////removing password using select method
+
   ).select("-password")
 
   return res
