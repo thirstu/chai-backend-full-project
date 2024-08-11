@@ -596,7 +596,64 @@ const getUserChannelProfile=asyncHandler(async(req,res)=>{
   )
 })
 //////
+const getWatchHistory=asyncHandler(async (req,res)=>{
 
+  const user = await User.aggregate([
+
+    {
+/* The above code is using the `` aggregation pipeline stage in MongoDB to filter documents based
+on the `_id` field. It is creating a filter to match documents where the `_id` field is equal to the
+`_id` of the user making the request. */
+      $match:{
+        _id: new mongoose.Types.ObjectId(req.user._id)
+
+      }
+    },
+    {
+      $lookup:{
+        from:"videos",
+        localField:"watchHistory",
+        foreignField:"_id",
+        as:"watchHistory",
+        pipeline:[
+          {
+            $lookup:{
+              from:"users",
+              localField:"owner",
+              foreignField:"_id",
+              as:"owner",
+              pipeline:[
+                {
+                  $project:{
+                    fullName:1,
+                    username:1,
+                    avatar:1,
+                  }
+                }
+              ]
+            }
+          },
+          {
+            $addFields:{
+              owner:{
+                $first:"$owner"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ])
+
+  return res
+  .status(200)
+  .json(
+    new ApiResponse(200,user[0].watchHistory,
+      "watchHistory fetched successfully"
+    )
+  )
+    
+})
 
 
 
@@ -611,6 +668,7 @@ export {
   updateUserAvatar,
   updateUserCoverImg,
   getUserChannelProfile,
+  getWatchHistory
 
 };
 
