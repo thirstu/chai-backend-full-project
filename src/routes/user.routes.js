@@ -1,9 +1,23 @@
 import {Router} from "express"
-import { registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUser,updateAccountDetails,updateUserAvatar,updateUserCoverImg } from "../controllers/user.controller.js"
+import {  registerUser,
+    loginUser,
+    logoutUser,
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImg,
+    getUserChannelProfile,
+    getWatchHistory } from "../controllers/user.controller.js"
 import {upload } from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
 const router= Router()
 
+////////////////////////////////////////////////////////////////////////
+/////POST is for creating new resources or submitting data that the server will process.
+////GET is used to retrieve data from the server without modifying it. It’s safe, idempotent, and often cached
+////PATCH is for updating parts of an existing resource.
 ///////////////////////////////////////////////////
 
 router.route("/register").post(
@@ -23,14 +37,26 @@ router.route("/register").post(
 ///////////////////////////////////////////////////
 
 router.route("/login").post(loginUser);
-router.route("/getCurrentUser").post(verifyJWT ,getCurrentUser);
-router.route("/updateAccountDetails").post(verifyJWT ,updateAccountDetails);
-router.route("/updateUserAvatar").post(
+////here we are using get as user not sending any data
+router.route("/getCurrentUser").get(verifyJWT ,getCurrentUser);
+//////////////////////////////////////////////////////////////
+// router.route("/updateAccountDetails").post(verifyJWT ,updateAccountDetails);
+/////
+router.route("/getUserChannelProfile/:username").get(verifyJWT ,getUserChannelProfile);
+/////////////////////////////////////////////////////////
+router.route("/changeCurrentPassword").post(verifyJWT ,changeCurrentPassword);
+/////////////////////////////////////////////////////////
+router.route("/updateAccountDetails").patch(verifyJWT ,updateAccountDetails);
+/////////////////////////////////////////////////////////
+router.route("/getWatchHistory").get(verifyJWT ,getWatchHistory);
+/////////////////////////////////////////////////////////
+router.route("/updateUserAvatar").patch(
     verifyJWT ,
     upload.single("avatar")
     ,
     updateUserAvatar);
-router.route("/updateUserCoverImg").post(
+/////////////////////////////////////////////////////////
+    router.route("/updateUserCoverImg").patch(
     verifyJWT ,
     upload.single("coverImg"),
     updateUserCoverImg
