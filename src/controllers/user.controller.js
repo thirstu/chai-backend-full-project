@@ -3,9 +3,7 @@ import { ApiError } from '../utills/ApiError.js';
 import {User} from '../models/user.models.js';
 import { uploadOnCloudinary,removeFromCloudinary } from '../utills/cloudinary.js';
 import { ApiResponse } from '../utills/ApiResponse.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
 import   jwt  from 'jsonwebtoken';
-import { response } from 'express';
 import mongoose from 'mongoose';
 
 const generateAccessAndRefreshTokens = async(userId)=>{
@@ -199,9 +197,13 @@ const logoutUser=asyncHandler(async(req,res)=>{
   await User.findOneAndUpdate(
     req.user._id,
     {
-      $set:{
-        refreshToken:undefined
-      },
+      // $set:{
+      //   refreshToken:undefined
+      // },////or
+      $unset:{
+        ////unsets passed value
+        refreshToken:1
+      }
       
     },
     {

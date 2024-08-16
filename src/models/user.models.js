@@ -8,7 +8,17 @@ const userSchema =new Schema({
         required:true,
         unique:true,
         lowercase:true,
+        /**
+         * Purpose: The trim option is used to automatically remove whitespace from both ends of a string before it is saved to the database.
+Type: Boolean (true or false)
+Default: false (trimming is not applied unless specified)
+         */
         trim:true,
+        /**
+         * Purpose: The index option is used to create an index on the field, which improves the speed of querying by that field.
+Type: Boolean (true or false), or Object
+Default: false (indexing is not applied unless specified)
+         */
         index:true,
 
 
