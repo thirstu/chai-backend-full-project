@@ -12,29 +12,75 @@ cloudinary.config({
 });
 
 
+////to get cloudinaryPublicId
+const cloudinaryPublicId = (path)=>{
 
+  
+    const pathLength = path.split("/").length;
+    const publicId = path.split("/")[pathLength-1].split('.')[0];
+  
+  return publicId;
+  
+    }
 
+////uploading file on cloudinary
 const uploadOnCloudinary= async (localFilePath)=>{
 
     try{
         if(!localFilePath)return null; 
+        // console.log(`line-21  src\\utills\\cloudinary.js------ ${localFilePath}-----end`);
+
         //upload file to cloudinary
-      const response= await cloudinary.uploader.upload(localFilePath,{
+      const responseFromCloudinary= await cloudinary.uploader.upload(localFilePath,{
             resource_type:"auto"
         })
+        // console.log(`line-27  src\\utills\\cloudinary.js------ ${responseFromCloudinary}-----end`);
+
         //file has been uploaded
         // console.log("file has been uploaded on cloudinary",response.url);
         fs.unlinkSync(localFilePath);
-        return response;
+        return responseFromCloudinary;
     }catch(err){
         fs.unlinkSync(localFilePath) // removes temperary localy stored file from our server
-        // console.error("src\utills\cloudinary.js",err);
+        console.error("src\\utills\cloudinary.js",err);
         return null;
+
+        /**
+         * Backslashes in Strings: In JavaScript, \ is used as an escape character. For example, \n creates a new line, \t creates a tab, and \u introduces a Unicode character. When the JavaScript engine encounters \u followed by characters that don't form a valid Unicode escape, it may throw an error or behave unexpectedly.
+         */
     }
 
 } 
 
-export {uploadOnCloudinary}
+
+///////////////////removing file from cloudinary/////////////////////////////////////////////////
+const removeFromCloudinary= async (localFilePath)=>{
+
+    try{
+        ////checking if local file exists
+        if(!localFilePath)return null; 
+        
+        ////extracting public id localFilePath
+        const public_id = cloudinaryPublicId(localFilePath);
+
+        console.log(`line-51  removeFromCloudinary------ ${public_id}-----end`);
+    ////removing from cloudinary
+    const responseFromCloudinary= await cloudinary.uploader.destroy(public_id)
+        console.log(`line-27  ----responseFromCloudinary-- ${responseFromCloudinary}-----end`);
+
+        return responseFromCloudinary;
+    }catch(err){
+        console.error("src\\utills\cloudinary.js",err);
+        return null;
+
+        /**
+         * Backslashes in Strings: In JavaScript, \ is used as an escape character. For example, \n creates a new line, \t creates a tab, and \u introduces a Unicode character. When the JavaScript engine encounters \u followed by characters that don't form a valid Unicode escape, it may throw an error or behave unexpectedly.
+         */
+    }
+
+} 
+
+export {uploadOnCloudinary,removeFromCloudinary}
 
  // Upload an image
 //  const uploadResult = await cloudinary.uploader

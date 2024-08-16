@@ -1,7 +1,7 @@
 import {asyncHandler} from '../utills/asyncHandler.js';
 import { ApiError } from '../utills/ApiError.js';
 import {User} from '../models/user.models.js';
-import { uploadOnCloudinary } from '../utills/cloudinary.js';
+import { uploadOnCloudinary,removeFromCloudinary } from '../utills/cloudinary.js';
 import { ApiResponse } from '../utills/ApiResponse.js';
 import { verifyJWT } from '../middlewares/auth.middleware.js';
 import   jwt  from 'jsonwebtoken';
@@ -421,19 +421,34 @@ const updateUserAvatar=asyncHandler(async (req, res) => {
   const avatarLocalPath= req.file?.path;
   ////checking if we got the path
   if(!avatarLocalPath){
-    throw new ApiError(400,"avatar file is missing")
+    throw new ApiError(400,"line-424 avatar file is missing")
   }
-
+  
+// console.log(avatarLocalPath);
   ////uploading avatar file to cloudinary which was temporarily stored in local storage (on our server) and getting path to that file from cloudinary
   const avatar= await uploadOnCloudinary(avatarLocalPath);
+// console.log(avatar);
+
 ////checking if we got the url from cloudinary where it uploaded ore avatar file
   if(!avatar.url){
-    throw new ApiError(400,"error while uploading avatar")
+    throw new ApiError(400,"line-434 error while uploading avatar")
 
   }
+  if(!avatar.url)return ;
 
+////////////////////////////////////////////
+
+ 
+  // ////////////////////////////////////////////
+  const user = await User.findById(req.user?._id);
+  if(!user){
+    throw new ApiError(400,"line-445  user not found")
+  }
+  /////storing old avatar path
+  const storeOldPath = user.avatar;
+//////////////////////////////////////////
 ////finding by id and updating at the same time
-  const user=await User.findByIdAndUpdate(
+  const userUpdated=await User.findByIdAndUpdate(
     ////providing id by extracting user from req and id from user
     req.user?._id,
     {
@@ -447,13 +462,17 @@ const updateUserAvatar=asyncHandler(async (req, res) => {
     {new:true}
 
     /////removing password using select method
-  ).select("-password")
+  ).select("-password");
+
+  ////////////////////removing old avatar////////////////
+  const removeOldAvatar=await removeFromCloudinary(storeOldPath);
+
 
 
 
   return res
   .status(200)
-  .json(new ApiResponse(200,user,"avatar updated successfully"))
+  .json(new ApiResponse(200,userUpdated,"avatar updated successfully"))
 })
 
 const updateUserCoverImg=asyncHandler(async (req, res) => {
@@ -475,42 +494,48 @@ const updateUserCoverImg=asyncHandler(async (req, res) => {
  * //Note: without user it will not be able update anything except uploading coverImg file on cloudinary
  * 
  */
-  // console.log("updateAccountDetails------req.body------------",req.body);
-  // console.log("updateAccountDetails-------req.user-----------",req.user);
-  // console.log("updateAccountDetails-------req.user-----------",req.file);
+
     ////taking coverImg file from req , from user
   const coverImgLocalPath= req.file?.path;
   ////checking coverImg path
   if(!coverImgLocalPath){
-    throw new ApiError(400,"coverImg file is missing")
+    throw new ApiError(400,"line-502 coverImg file is missing")
   }
+
 
   ////uploading coverImg file to cloudinary which was temporarily stored in local storage (on our server) and getting path to that file from cloudinary
   const coverImg= await uploadOnCloudinary(coverImgLocalPath);
+ 
 
   ////checking for path to the img which was just uploaded
   if(!coverImg.url){
-    throw new ApiError(400,"error while uploading coverImg")
-
+    throw new ApiError(400,"line-512 error while uploading coverImg")
   }
-
- 
-
+  if(!coverImg.url)return ;
+  ////////////////////////////////////////////
+  const user = await User.findById(req.user?._id);
+  if(!user){
+    throw new ApiError(400,"line-518 user not found")
+  }
+  const storeOldPath = user.coverImg;
+  /////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
     ////finding by id and updating at the same time
-  const user= await User.findByIdAndUpdate(
+  const userUpdated= await User.findByIdAndUpdate(
     ////providing id by extracting user from req and id from user
-    req.user?._id,
+    {_id:req.user?._id},
     {
       ////setting old avatar path (url) to new one
-      $set:{
         coverImg: coverImg.url
-      }
     },
     ////using  (new:true) so we get the updated value
     {new:true}
     /////removing password using select method
-
   ).select("-password")
+  /////////////////////////////////////////////////////
+  const removeOldCoverImg=await removeFromCloudinary(storeOldPath);
+
+  /////////////////////////////////////////////////////
 
   return res
   .status(200)
@@ -518,22 +543,28 @@ const updateUserCoverImg=asyncHandler(async (req, res) => {
 })
 
 const getUserChannelProfile=asyncHandler(async(req,res)=>{
+  ////taking username from param or url as user is logged in
   const {username}=req.params;
-
+console.log(req.params);
+/////checking if user exist
   if(!username?.trim()){
     throw new ApiError(400,"username is missing")
   }
 
+  /**
+   * 
   // User.find({username})
-  //Or
+  //Syntax: The aggregate() method is used to run an aggregation pipeline on a collection
+  */
   const channel=await User.aggregate([
+    ////($match)Filters documents based on a specified condition
     {
       $match:{
         username: username?.toLowerCase()
       }
     },
     {
-      ////looking up
+      ////looking up Performs a left outer join with another collection
       $lookup:{
         ////from where to look
         from:"subscriptions",
@@ -546,6 +577,8 @@ const getUserChannelProfile=asyncHandler(async(req,res)=>{
       }
     },
     {
+      ////looking up Performs a left outer join with another collection
+
       $lookup:{
         from:"subscriptions",
         localField:"_id",
@@ -554,16 +587,25 @@ const getUserChannelProfile=asyncHandler(async(req,res)=>{
       }
     },
     {
+      ////Adds new fields to documents or modifies existing fields
       $addFields:{
         subscribersCount:{
-          $size:"$subscribers"
+          $size:{$ifNull:["$subscribers",[]]}// Ensure it's an array
         },
         channelsSubscribedToCount:{
-          $size:"$subscribedTo"
+          /**
+           * The $size operator in MongoDB is used in the aggregation framework to return the number of elements in an array. It's commonly used in stages like $project or $addFields to calculate the length of an array field within a document
+           */
+          $size:{
+            ////checking if size is null or not an array as size expects an array ,thats why we are giving an second option which is an empty ([]) array if first one is not
+            $ifNull:["$subscribedTo",[]]} // Ensure it's an array
         },
         isSubscribed:{
+          /////The $cond operator in MongoDB is a conditional operator used in the aggregation framework to evaluate a condition and return one of two expressions based on the result of that condition. It's similar to an if-else statement in traditional
           $cond:{
-            if:{$in:[req.user?._id,"$subscribers.subscriber"]},
+            if:{
+              ////The $in operator in MongoDB is used to check if a specified value exists within an array. It returns a boolean value: true if the value is found in the array, and false if it is not
+              $in:[req.user?._id,{$ifNull:["$subscribers.subscriber",[]]}]},
             then:true,
             else:false
           }
@@ -573,6 +615,8 @@ const getUserChannelProfile=asyncHandler(async(req,res)=>{
       }
     },
     {
+
+      ////The $project stage in MongoDB's aggregation framework is used to specify which fields should be included or excluded in the output documents, and it allows for the creation of new fields based on existing data. This stage is crucial for shaping the output of your aggregation pipeline, making it possible to control the structure and content of the resulting documents.
       $project:{
         fullName:1,
         username:1,
@@ -585,6 +629,7 @@ const getUserChannelProfile=asyncHandler(async(req,res)=>{
       }
     }
   ])
+  console.log(channel);
   if(!channel?.length){
     throw new ApiError(404,"channel does not exists")
   }

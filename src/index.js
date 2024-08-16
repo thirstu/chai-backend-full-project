@@ -51,3 +51,13 @@ connectDB().then(response=>{
         console.log(`2222222222src\index.js||server listening on port: ${process.env.PORT}`);
     })
 }).catch(err=>console.log("chai-backend-full-project\src\index.js|||||MONGODB connection failed: " , err));  
+
+/**
+ * netstat -ano | findstr :8000
+ * ///////list of running process//////////////
+ * netstat -ano
+ * ///////to find/////
+ * findstr :8000
+ * ///////////to kill the process/////
+ * taskkill /PID 14740 /F
+ */
