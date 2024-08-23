@@ -48,7 +48,9 @@ connectDB().then(response=>{
     })
 
     app.listen(process.env.PORT || 8000, ()=>{
-        console.log(`2222222222src\index.js||server listening on port: ${process.env.PORT}`);
+        console.log(`
+            //////////////////////////////////////////=================================================////////////////////////////////////////////////////////=================================================/////////////////////////////////////////////////
+            2222222222src\index.js||server listening on port: ${process.env.PORT}`);
     })
 }).catch(err=>console.log("chai-backend-full-project\src\index.js|||||MONGODB connection failed: " , err));  
 

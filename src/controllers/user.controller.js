@@ -57,7 +57,7 @@ const registerUser = asyncHandler(async (req,res)=>{
    const existingUser =await User.findOne({
         $or:[{username},{email}]
     })
-
+// console.log();
     if(existingUser){
         throw new ApiError(409,"this user with email or username already exists")
     };
@@ -70,7 +70,29 @@ const registerUser = asyncHandler(async (req,res)=>{
   //  const coverImgLocalPath= req.files?.coverImg[0]?.path;
   //  console.log(req.files);
 /////////////////////////////////////////////////////////
+/**
+ * Key Features of Array:
+Creation:
 
+You can create an array using square brackets [] or the Array constructor.
+javascript
+Copy code
+let fruits = ['apple', 'banana', 'cherry'];  // Using square brackets
+let numbers = new Array(1, 2, 3, 4);  
+Properties:
+
+length: Returns the number of elements in the array.
+
+ * Array.isArray(): Checks if a value is an array (discussed previously).
+Array.from(): Creates a new array from an array-like or iterable object.
+Array.of(): Creates a new array instance with a variable number of arguments.
+javascript
+Copy code
+let arrayLike = {0: 'a', 1: 'b', length: 2};
+let arr = Array.from(arrayLike);  // Converts an array-like object to an array
+
+let arrOf = Array.of(7, 8, 9);
+ */
 let coverImgLocalPath;
 if(req.files&& Array.isArray(req.files.coverImg)&&req.files.coverImg.length>0){
   coverImgLocalPath=req.files.coverImg[0].path
@@ -91,8 +113,8 @@ if(req.files&& Array.isArray(req.files.coverImg)&&req.files.coverImg.length>0){
 
    }
 
-  const avatar= await uploadOnCloudinary(avatarLocalPath);
-  const coverImg= await uploadOnCloudinary(coverImgLocalPath);
+  const avatar= await uploadOnCloudinary(avatarLocalPath,"profile");
+  const coverImg= await uploadOnCloudinary(coverImgLocalPath,"profile");
   // console.log(await avatar,await coverImg);
 
   if(!avatar){
@@ -421,6 +443,7 @@ const updateUserAvatar=asyncHandler(async (req, res) => {
 
   ////taking avatar file from req , from user
   const avatarLocalPath= req.file?.path;
+  console.log(req.file);
   ////checking if we got the path
   if(!avatarLocalPath){
     throw new ApiError(400,"line-424 avatar file is missing")
@@ -428,7 +451,7 @@ const updateUserAvatar=asyncHandler(async (req, res) => {
   
 // console.log(avatarLocalPath);
   ////uploading avatar file to cloudinary which was temporarily stored in local storage (on our server) and getting path to that file from cloudinary
-  const avatar= await uploadOnCloudinary(avatarLocalPath);
+  const avatar= await uploadOnCloudinary(avatarLocalPath,"profile");
 // console.log(avatar);
 
 ////checking if we got the url from cloudinary where it uploaded ore avatar file
@@ -506,7 +529,7 @@ const updateUserCoverImg=asyncHandler(async (req, res) => {
 
 
   ////uploading coverImg file to cloudinary which was temporarily stored in local storage (on our server) and getting path to that file from cloudinary
-  const coverImg= await uploadOnCloudinary(coverImgLocalPath);
+  const coverImg= await uploadOnCloudinary(coverImgLocalPath,"profile");
  
 
   ////checking for path to the img which was just uploaded

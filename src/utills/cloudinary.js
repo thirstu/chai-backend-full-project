@@ -24,7 +24,7 @@ const cloudinaryPublicId = (path)=>{
     }
 
 ////uploading file on cloudinary
-const uploadOnCloudinary= async (localFilePath)=>{
+const uploadOnCloudinary= async (localFilePath,folder,userId)=>{
 
     try{
         if(!localFilePath)return null; 
@@ -32,7 +32,9 @@ const uploadOnCloudinary= async (localFilePath)=>{
 
         //upload file to cloudinary
       const responseFromCloudinary= await cloudinary.uploader.upload(localFilePath,{
-            resource_type:"auto"
+            resource_type:"auto",
+            folder:folder,
+            tags:[userId]
         })
         // console.log(`line-27  src\\utills\\cloudinary.js------ ${responseFromCloudinary}-----end`);
 
@@ -57,6 +59,7 @@ const uploadOnCloudinary= async (localFilePath)=>{
 const removeFromCloudinary= async (localFilePath)=>{
 
     try{
+        console.log(localFilePath,"removeFromCloudinary");
         ////checking if local file exists
         if(!localFilePath)return null; 
         
@@ -130,3 +133,34 @@ export {uploadOnCloudinary,removeFromCloudinary}
     
     console.log(autoCropUrl);    
 })();*/
+
+
+
+/**
+ * Enables you to manage all the resources (assets) stored in your product environment.
+
+Method	Description
+GET/resources/:resource_type(/:type)	Lists resources (assets) stored in your product environment.
+GET/resources/by_asset_folder	Lists resources (assets) located in a specified asset folder.
+Not supported for product environments using the legacy fixed folder mode.
+
+GET/resources/by_asset_ids	Lists resources (assets) based on the specified asset IDs.
+GET/resources/:resource_type/tags/:tag	Lists resources (assets) with a specified tag.
+GET/resources/:resource_type/context/	Lists resources (assets) with a specified contextual metadata key.
+GET/resources/:resource_type/moderations/:moderation_kind/:status	Lists resources (assets) with a particular status from a specified moderation type.
+GET/resources/:resource_type/:type/:public_id	List details of the asset with the specified public ID, as well as all its derived assets.
+GET/resources/:asset_id	List details of the asset with the specified asset ID, as well as all its derived assets.
+GET/resources/search	Filters and retrieves information on all the resources (assets) in your product environment.
+GET/resources/visual_search	Find images based on their visual content.
+POST/resources/:resource_type/:type/:public_id	Updates one or more of the attributes associated with a specified resource (asset).
+POST/resources/:resource_type/:type/restore	Restores one or more resources (assets) from backup.
+POST/resources/:resource_type/upload/update_access_mode	Updates the access mode of resources (assets) by public ID, by tag, or by prefix.
+POST/resources/related_assets/:resource_type/:type/:public_id	Relates assets by public IDs.
+POST/resources/related_assets/:asset_id	Relates assets by asset IDs.
+DELETE/resources/related_assets/:resource_type/:type/:public_id	Unrelates related assets by public IDs.
+DELETE/resources/related_assets/:asset_id	Unrelates related assets by asset IDs.
+DELETE/resources/:resource_type/:type	Deletes resources (assets) by public IDs.
+DELETE/resources/:resource_type/tags/:tag	Deletes resources by tags.
+DELETE/derived_resources	Deletes derived assets.
+DELETE/resources/backup/:asset_id	Delete backed up versions of a resource.
+ */
