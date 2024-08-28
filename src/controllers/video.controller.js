@@ -1,7 +1,7 @@
 import {asyncHandler} from "../utills/asyncHandler.js"
 import {ApiError} from "../utills/ApiError.js"
 import {User} from "../models/user.models.js"
-import {uploadOnCloudinary} from "../utills/cloudinary.js"
+import {cloudinaryPublicId, removeFromCloudinary, uploadOnCloudinary} from "../utills/cloudinary.js"
 import mongoose, {isValidObjectId} from "mongoose"
 import {ApiResponse} from "../utills/ApiResponse.js"
 import   jwt  from 'jsonwebtoken';
@@ -175,7 +175,7 @@ Description: Filters resources created after a specific date. The date should be
     
     direction: Sets sort direction. Note: Cloudinary uses -1 for descending and 1 for ascending.
          */
-        direction: sortType.toLowerCase()==="desc"?-1:1,
+        direction: sortType==="desc"?-1:1,
         /**
          * Sorting:
     sort_by:
@@ -330,8 +330,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     const video=Video.create({
         owner: userId,
-        videoFile:resFromCloudinaryOfVideoFile.url||"",
-        thumbnail:resFromCloudinaryOfThumbnail.url||"",
+        videoFile:resFromCloudinaryOfVideoFile.url||"videos/video",
+        thumbnail:resFromCloudinaryOfThumbnail.url||"videos/thumbnail",
         duration: resFromCloudinaryOfVideoFile.duration,
         views: 0,
         isPublished: true,
@@ -353,12 +353,142 @@ const publishAVideo = asyncHandler(async (req, res) => {
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    //TODO: get video by id
+    ////asset id me asset id ghused public id nahi!!!! 😡😡😡
+try {
+        /**
+         * req.query:
+    
+    Access query string parameters (?key=value) in the URL.
+    Commonly used in GET requests for filtering, searching, sorting, etc.
+    req.params:
+    
+    Access route parameters (:param) defined in the URL path.
+    Typically used for identifying specific resources in the route (e.g., by ID).
+         */
+        console.log(req.params);
+        let { videoId } = req.params;
+        const options={
+        
+            type: 'upload',
+            prefix: `videos/video/${videoId}`,
+            resource_type:'video',
+            // direction: "desc",
+            // sort_by: "created_at",
+            max_results: parseInt(1)
+            
+            }
+         videoId=options.prefix;
+        // console.log(videoId,videoIdFromReq);
+
+    console.log(options.prefix);
+
+
+            const videoByVideoId = await cloudinary.api.resources_by_ids(videoId,options).then(res=>{
+                console.log("--getVideoById-----------res--------------",res);
+                return res;
+            });
+            ////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////
+        // const videoByVideoId = await cloudinary.api.resources_by_asset_ids(videoIdFromReq,options).then(res=>{
+        //     console.log("-------------res--------------",res);
+        //     return res;
+        // });
+    
+        
+        //TODO: get video by id
+        // res.json(videoByVideoId)
+        res.status(200).json(
+            new ApiResponse(200,videoByVideoId,"good health getAllVideos")
+        )
+        return videoByVideoId
+    } catch (err) {
+    console.error("------getVideoById-------err--------------",err);
+}
+})
+const getThumbnailById = asyncHandler(async (thumbnailIdToGet) => {
+try {
+    ////extracting public id from url
+    const extractedThumbnailId=cloudinaryPublicId(thumbnailIdToGet);
+        let  thumbnailId  = extractedThumbnailId;
+        ////options
+        const options={
+            type: 'upload',
+            prefix: `videos/thumbnail/${thumbnailId}`,
+            resource_type:'image',
+            }
+////NOTE: the public id is this (videos/video/r1178vkck5bdqjnxkmu0) not (r1178vkck5bdqjnxkmu0) check it on cloudinary , wasted a day on this small detail you mr 😡🤬🤬
+            const thumbnailByThumbnailId = await cloudinary.api.resources_by_ids(options.prefix,options).then(res=>{
+                console.log("--getThumbnailById-------3----res--------------",res?res:null);
+                return res?res:null;
+            });
+            ////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////
+        return thumbnailByThumbnailId;
+    } catch (err) {
+    console.error("------getThumbnailById-------err----4----------",err);
+}
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
+let oldVideoObject,newDetailsToUpdate,updatedVideoObject,newThumbnail;
+const thumbnailToBeUpdated=req.file.path;
+const userId=req.user._id;
+
+//////////////////////////////////////////////
+//////////////////////////////////////////////
+//////////////////////////////////////////////
+    ////getting the video of the given id from user
+    const {asset_id,public_id,url}=await getVideoById(req,res).then(res=>res.resources[0]).catch(err=>console.error("416------updateVideo-----",err));
+    ////options
+    const options={
+        videoFile:url
+    }
+////checking if we got the video
+    if(asset_id&&public_id){
+        ////after getting the video finding its data object in mongoDB
+        oldVideoObject=await  Video.find(options).then(res=>res
+    ).catch(err=>console.error("422------updateVideo-----",err));
+    }
+    /////taking things which we need from the old video object
+const {title, description, thumbnail,_id}=oldVideoObject[0];     
+console.log("oldVideoObject",oldVideoObject);
+
+////checking if we got the video object
+if(title&&description&&thumbnail){
+    ////and after that we are uploading the new thumbnail 
+    newThumbnail=await uploadOnCloudinary(thumbnailToBeUpdated,"videos/thumbnail",userId).then(res=>res).catch(err=>console.error(err));
+    console.log("newThumbnail---------",newThumbnail);
+    ////if we got the new thumbnail 
+    if(newThumbnail){
+        ////then we are removing the old thumbnail
+       const removedThumbnail=await removeFromCloudinary(thumbnail?thumbnail:null);
+       console.log("removedThumbnail",removedThumbnail?removedThumbnail:null);
+    }
+    ///////////////////
+    /////details to update
+    newDetailsToUpdate={
+        title:req.body.title,
+        description:req.body.description,
+        thumbnail:newThumbnail.url,
+    }
+    ///////////////////////////
+    ////updating new details
+    updatedVideoObject=await Video.findByIdAndUpdate(_id,newDetailsToUpdate,
+    {new:true}
+).then(res=>res
+).catch(err=>console.error(err))
+////////////////////////////////
+
+}
+console.log("---updatedVideoObject------res----------",updatedVideoObject);
+    /**
+     *  const {resources}=await getVideoById(req,res);
+    console.log("hello updateVideo",resources[0].public_id);
+     */
+
+
     //TODO: update video details like title, description, thumbnail
 
 })
@@ -380,3 +510,6 @@ export {
     deleteVideo,
     togglePublishStatus
 }
+/**
+ * {"_id":{"$oid":"66cc8497d20c1bf54e406fa1"},"username":"kisnu","watchHistory":[],"email":"kisnu123@gamil.com","fullName":"krishana","avatar":"http://res.cloudinary.com/ajaykn/image/upload/v1724679317/profile/xrmweunx4luont4nbxpv.jpg","coverImg":"http://res.cloudinary.com/ajaykn/image/upload/v1724679318/profile/jrur34elybhc20xjuvjv.webp","password":"$2b$10$IiFjYknhih/E9XG.Z8lvU.aog2xty6k3O8MEK4tn4fH250fIzam2q","createdAt":{"$date":{"$numberLong":"1724679319192"}},"updatedAt":{"$date":{"$numberLong":"1724679489340"}},"__v":{"$numberInt":"0"},"refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NmNjODQ5N2QyMGMxYmY1NGU0MDZmYTEiLCJpYXQiOjE3MjQ2Nzk0ODksImV4cCI6MTcyNTU0MzQ4OX0.FSOOIOHs9OkWH2lNcQ3CGg247Zp9ZmTiCZ-emisz-Qo"}
+ */

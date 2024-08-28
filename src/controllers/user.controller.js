@@ -122,6 +122,10 @@ if(req.files&& Array.isArray(req.files.coverImg)&&req.files.coverImg.length>0){
 
   }
 
+  /**
+   * Step 4: Create an Instance of the Model
+Create a new document (record) by instantiating the model.
+   */
   const user=await User.create({
     fullName,
     avatar:avatar.url,
@@ -559,7 +563,7 @@ const updateUserCoverImg=asyncHandler(async (req, res) => {
   ).select("-password")
   /////////////////////////////////////////////////////
   const removeOldCoverImg=await removeFromCloudinary(storeOldPath);
-
+console.log("removeOldCoverImg----------------------------------------------".removeOldCoverImg);
   /////////////////////////////////////////////////////
 
   return res

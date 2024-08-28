@@ -1,5 +1,6 @@
 import { Router } from "express";
-import {getAllVideos,
+import {
+    getAllVideos,
     publishAVideo,
     getVideoById,
     updateVideo,
@@ -24,6 +25,7 @@ import { upload } from "../middlewares/multer.middleware.js";
     //         maxCount:1
     //     }
     // ]),getAllVideos);
+
     // router.route("/publishAVideo").post(upload.fields([
     //     { 
     //         name:"videoFile",
@@ -36,31 +38,9 @@ import { upload } from "../middlewares/multer.middleware.js";
     // ]),publishAVideo);
 
 
-    // export default router;
 
-    /**
-     * router.route("/register").post(
-    upload.fields([
-        
-        { 
-            name:"avatar",
-            maxCount:1
-        },
-        {
-            name:"coverImg",
-            maxCount:1
-        }
-    ]),
-    registerUser
-)
-     */
-    /**
-     *     router.route("/updateUserCoverImg").patch(
-    verifyJWT ,
-    upload.single("coverImg"),
-    updateUserCoverImg
-);
-     */
+ 
+
 
 
 router

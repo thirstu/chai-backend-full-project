@@ -14,6 +14,12 @@ const connectDB =async ()=>{
 try{
     // console.log("1111111111//////src\db\index.js/////database");
     // console.log(DB_NAME);
+    /**
+     * mongoose.connect() establishes a connection to your MongoDB database.
+Replace 'mongodb://localhost:27017/your_database_name' with your actual MongoDB connection string.
+The .then() and .catch() handle successful connection and errors, respectively.
+     */
+    /////Step 1: Connect to MongoDB
    const connectionInstance= await mongoose.connect(`${process.env.MONGODB_URL}//${DB_NAME}`);
    ///////////////////////////////////////
        app.on("error",(err)=>{
@@ -22,10 +28,7 @@ try{
        });
    ///////////////////////////////////////
 
-    //    app.listen(process.env.PORT,()=>{
-    //     console.log(`src\db\index.js//App listening on ${process.env.PORT}`);
-        
-    //    });
+
    ///////////////////////////////////////
 
 //    console.log(`\n MongoDB connected ! ! DB HOST: ${connectionInstance.connection.host}`);

@@ -14,10 +14,15 @@ cloudinary.config({
 
 ////to get cloudinaryPublicId
 const cloudinaryPublicId = (path)=>{
-
-  
-    const pathLength = path.split("/").length;
-    const publicId = path.split("/")[pathLength-1].split('.')[0];
+    let publicId;
+  console.log("-------path----------",path);
+    if(path.includes("http://")){
+        const pathLength = path.split("/").length;
+     publicId = path.split("/")[pathLength-1].split('.')[0];
+    }else{
+        publicId=path;
+    }
+    console.log("-------publicId----------",publicId);
   
   return publicId;
   
@@ -56,22 +61,50 @@ const uploadOnCloudinary= async (localFilePath,folder,userId)=>{
 
 
 ///////////////////removing file from cloudinary/////////////////////////////////////////////////
-const removeFromCloudinary= async (localFilePath)=>{
+const removeFromCloudinary= async (oldFilesId)=>{
 
     try{
-        console.log(localFilePath,"removeFromCloudinary");
         ////checking if local file exists
-        if(!localFilePath)return null; 
+        if(!oldFilesId)return null; 
         
-        ////extracting public id localFilePath
-        const public_id = cloudinaryPublicId(localFilePath);
+        ////extracting public id oldFilesId 
+        const public_id = cloudinaryPublicId(oldFilesId);
+        console.log("68---------------removeFromCloudinary",public_id);
+        const options = {
+            type: 'upload',
+            prefix: `videos/thumbnail/${public_id?public_id:null}`,
+            resource_type:'image',
+        }
 
-        console.log(`line-51  removeFromCloudinary------ ${public_id}-----end`);
+
+        // console.log(`line-51  removeFromCloudinary------ ${public_id}---------------${options.prefix}-----end`);
+        const responseFromCloudinary= await cloudinary.uploader.destroy(options.prefix,options).then(res=>{
+            console.log("77----------removing from cloudinary res",res);
+            return res
+        }).catch(err=>console.error(err));
+            console.log(`line-80  ----responseFromCloudinary-- ${responseFromCloudinary?responseFromCloudinary:null}-----end`);
     ////removing from cloudinary
-    const responseFromCloudinary= await cloudinary.uploader.destroy(public_id)
-        console.log(`line-27  ----responseFromCloudinary-- ${responseFromCloudinary}-----end`);
+    // if(oldFilesId.includes("http://")){
+    //     responseFromCloudinary= await cloudinary.uploader.destroy(public_id,{
+    //         resource_type:'image'
+    //     }).then(res=>{
+    //         console.log("77----------removing from cloudinary res",res);
+    //         return res
+    //     }).catch(err=>console.error(err));
+    //         console.log(`line-80  ----responseFromCloudinary-- ${responseFromCloudinary}-----end`);
+    // }else{
+    //     responseFromCloudinary= await cloudinary.api.delete_related_assets_by_asset_id(public_id,{
+    //         resource_type:'image'
+    //     }).then(res=>{
+    //         console.log("77----------removing from cloudinary res",res);
+    //         return res
+    //     }).catch(err=>console.error(err));
+    //         console.log(`line-80  ----responseFromCloudinary-- ${responseFromCloudinary}-----end`);
+       
+    // }
+     
 
-        return responseFromCloudinary;
+        return (responseFromCloudinary?responseFromCloudinary:null);
     }catch(err){
         console.error("src\\utills\cloudinary.js",err);
         return null;
@@ -83,7 +116,7 @@ const removeFromCloudinary= async (localFilePath)=>{
 
 } 
 
-export {uploadOnCloudinary,removeFromCloudinary}
+export {uploadOnCloudinary,removeFromCloudinary,cloudinaryPublicId}
 
  // Upload an image
 //  const uploadResult = await cloudinary.uploader
