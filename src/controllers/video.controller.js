@@ -18,7 +18,7 @@ import { ApiResponse } from '../utills/ApiResponse.js';
 import   jwt  from 'jsonwebtoken';
 import mongoose from 'mongoose';
  */
-const getAllVideos = asyncHandler(async (req, res) => {
+const getAllVideos = asyncHandler(async (req, res,sendResponse=true) => {
 
 try {
         
@@ -284,6 +284,7 @@ Description: Filters resources created after a specific date. The date should be
      */
     
     // console.log("-allVideos.next_cursor-------------hello---------------",allVideos.next_cursor);
+
     
     /////Error Handling
     
@@ -293,15 +294,18 @@ Description: Filters resources created after a specific date. The date should be
         // console.log(req.query,"query---------------------");
         
         // console.log(req.body,"body---------------------");
-        return res.status(200).json(
-            new ApiResponse(200,response,"good health getAllVideos")
-        )
+        if(sendResponse) {
+            res.status(200).json(
+                new ApiResponse(200,response,"good health getAllVideos")
+            )
+        }
+
 } catch (err) {
     console.error('error fetching videos from cloudinary:',err);
     return res.status(500).json({error:"Failed to fetch videos"})
 }
 })
-const publishAVideo = asyncHandler(async (req, res) => {
+const publishAVideo = asyncHandler(async (req, res,sendResponse=true) => {
     const userId=req.user._id;
     console.log(req.files);
     console.log(req.body);
@@ -347,12 +351,16 @@ const publishAVideo = asyncHandler(async (req, res) => {
 ////////////////////////////return////////////////////////////////
 ////////////////////////////return////////////////////////////////
 ////////////////////////////return////////////////////////////////
-    return res.status(200).json(
-        new ApiResponse(200,video,"good health publishAVideo")
-    )
+    
+    if(sendResponse) {
+        return res.status(200).json(
+            new ApiResponse(200,video,"good health publishAVideo")
+    
+        )
+    }
 })
 
-const getVideoById = asyncHandler(async (req, res) => {
+const getVideoById = asyncHandler(async (req, res,sendResponse=true) => {
     ////asset id me asset id ghused public id nahi!!!! 😡😡😡
 try {
         /**
@@ -399,15 +407,18 @@ try {
         
         //TODO: get video by id
         // res.json(videoByVideoId)
-        res.status(200).json(
-            new ApiResponse(200,videoByVideoId,"good health getAllVideos")
-        )
-        return videoByVideoId
+       
+        if(sendResponse) {
+            res.status(200).json(
+                new ApiResponse(200,videoByVideoId.resources[0],"good health getAllVideos")
+            )
+        }
+        return videoByVideoId.resources[0]
     } catch (err) {
     console.error("------getVideoById-------err--------------",err);
 }
 })
-const getThumbnailById = asyncHandler(async (thumbnailIdToGet) => {
+const getThumbnailById = asyncHandler(async (thumbnailIdToGet,sendResponse=true) => {
 try {
     ////extracting public id from url
     const extractedThumbnailId=cloudinaryPublicId(thumbnailIdToGet);
@@ -425,13 +436,13 @@ try {
             });
             ////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////
-        return thumbnailByThumbnailId;
+        return thumbnailByThumbnailId?thumbnailByThumbnailId.resources[0]:null;
     } catch (err) {
     console.error("------getThumbnailById-------err----4----------",err);
 }
 })
 
-const updateVideo = asyncHandler(async (req, res) => {
+const updateVideo = asyncHandler(async (req, res,sendResponse=true) => {
 let oldVideoObject,newDetailsToUpdate,updatedVideoObject,newThumbnail;
 const thumbnailToBeUpdated=req.file.path;
 const userId=req.user._id;
@@ -462,9 +473,12 @@ if(title&&description&&thumbnail){
     console.log("newThumbnail---------",newThumbnail);
     ////if we got the new thumbnail 
     if(newThumbnail){
+        ////getting the old thumbnail
+        const resources=await getThumbnailById(thumbnail);
+        ////destructuring the old thumbnail
+        const {display_name,asset_id,public_id,asset_folder,resource_type,url}=resources;
         ////then we are removing the old thumbnail
-       const removedThumbnail=await removeFromCloudinary(thumbnail?thumbnail:null);
-       console.log("removedThumbnail",removedThumbnail?removedThumbnail:null);
+       const removedThumbnail=await removeFromCloudinary(display_name,asset_folder,resource_type);
     }
     ///////////////////
     /////details to update
@@ -488,17 +502,70 @@ console.log("---updatedVideoObject------res----------",updatedVideoObject);
     console.log("hello updateVideo",resources[0].public_id);
      */
 
-
+    if(sendResponse) {
+        res.status(200).json(
+            new ApiResponse(200,updatedVideoObject,"good health getAllVideos")
+        )
+    }
     //TODO: update video details like title, description, thumbnail
 
 })
 
-const deleteVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
+const deleteVideo = asyncHandler(async (req, res,sendResponse=true) => {
+    const { videoId } = req.params;
+    console.log(videoId);
     //TODO: delete video
+    const videoResources=await getVideoById(req, res,false);
+    console.log("deleteVideo----videoResources",videoResources);
+    const video=videoResources;
+    console.log("deleteVideo----videoResources",video.asset_id);
+
+    const videoExtracted={
+        asset_id:video.asset_id,
+        public_id:video.public_id,
+        asset_folder:video.asset_folder,
+        resource_type:video.resource_type,
+        url:video.url
+    }
+    const videoObject=await Video.find({videoFile:videoExtracted.url});
+
+    console.log("deleteVideo----videoExtracted",videoObject);
+
+    const thumbnailResources=await getThumbnailById(videoObject[0].thumbnail);
+    console.log("deleteVideo----videoExtracted",thumbnailResources);
+
+    const thumbnail=thumbnailResources;
+    const thumbnailExtracted={
+        asset_id:thumbnail.asset_id,
+        public_id:thumbnail.public_id,
+        asset_folder:thumbnail.asset_folder,
+        resource_type:thumbnail.resource_type,
+        url:thumbnail.url
+    }
+
+    console.log(videoExtracted,thumbnailExtracted);
+
+    const deletedVideoResponse = await removeFromCloudinary(videoExtracted.url,videoExtracted.asset_folder,videoExtracted.resource_type);
+    const deletedThumbnailResponse = await removeFromCloudinary(thumbnailExtracted.url,thumbnailExtracted.asset_folder,thumbnailExtracted.resource_type);
+    const deletedVideoObjectResponse = await Video.deleteOne(videoObject[0]?._id)
+
+    console.log(deletedVideoResponse,deletedThumbnailResponse,deletedVideoObjectResponse);
+
+    
+    if(sendResponse){
+return res
+    .status(200)
+    .json(new ApiResponse(200,{deletedVideoResponse,deletedThumbnailResponse,deletedVideoObjectResponse},"video deleted successfully"))
+    }
+
+/**
+ *     Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at ServerResponse.setHeader (node:_http_outgoing:699:11)
+ *////happens when we are sending multiple responses which sets headers and headers cannot be set multiple times for a single request
+
 })
 
-const togglePublishStatus = asyncHandler(async (req, res) => {
+const togglePublishStatus = asyncHandler(async (req, res,sendResponse=true) => {
     const { videoId } = req.params
 })
 

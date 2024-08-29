@@ -61,20 +61,25 @@ const uploadOnCloudinary= async (localFilePath,folder,userId)=>{
 
 
 ///////////////////removing file from cloudinary/////////////////////////////////////////////////
-const removeFromCloudinary= async (oldFilesId)=>{
+const removeFromCloudinary= async (oldFilesId,folder,resourceType)=>{
 
     try{
+        let public_id;
         ////checking if local file exists
         if(!oldFilesId)return null; 
         
         ////extracting public id oldFilesId 
-        const public_id = cloudinaryPublicId(oldFilesId);
-        console.log("68---------------removeFromCloudinary",public_id);
+       
+
+             public_id = cloudinaryPublicId(oldFilesId);
+            console.log("68---------------removeFromCloudinary",public_id);
+       
         const options = {
             type: 'upload',
-            prefix: `videos/thumbnail/${public_id?public_id:null}`,
-            resource_type:'image',
+            prefix: `${folder}/${public_id?public_id:null}`,
+            resource_type:resourceType,
         }
+        console.log(options.prefix);
 
 
         // console.log(`line-51  removeFromCloudinary------ ${public_id}---------------${options.prefix}-----end`);
