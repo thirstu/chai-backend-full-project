@@ -1,9 +1,9 @@
 import mongoose,{Schema} from "mongoose";
-
+import { User } from "./user.models.js";
 const tweetSchema=new Schema({
     owner:{
         type:Schema.Types.ObjectId,
-        ref:User,
+        ref:"User",
     },
     content:{
         type:String,

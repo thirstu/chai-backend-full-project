@@ -2,9 +2,7 @@ import {asyncHandler} from "../utills/asyncHandler.js"
 import {ApiError} from "../utills/ApiError.js"
 import {User} from "../models/user.models.js"
 import {cloudinaryPublicId, removeFromCloudinary, uploadOnCloudinary} from "../utills/cloudinary.js"
-import mongoose, {isValidObjectId} from "mongoose"
 import {ApiResponse} from "../utills/ApiResponse.js"
-import   jwt  from 'jsonwebtoken';
 
 import {Video} from "../models/video.models.js"
 import { v2 as cloudinary } from "cloudinary"
