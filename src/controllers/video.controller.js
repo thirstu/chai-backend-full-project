@@ -566,7 +566,19 @@ return res
 })
 
 const togglePublishStatus = asyncHandler(async (req, res,sendResponse=true) => {
-    const { videoId } = req.params
+    ////video id through url
+    const { videoId } = req.params;
+    ////getting video from cloudinary
+    const video=await getVideoById(req, res,false);
+    ////getting video object from MongoDB
+    const videoObject=await Video.find({videoFile:video.url});
+    ////toggling publish status
+    const updatedVideoObject=await Video.findOneAndUpdate({videoFile:video.url},{
+        isPublished: !videoObject?.[0].isPublished,
+    },
+    {new: true}
+);
+    // console.log(updatedVideoObject);
 })
 
 export {
