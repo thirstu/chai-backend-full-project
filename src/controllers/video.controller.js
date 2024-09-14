@@ -349,7 +349,7 @@ const publishAVideo = asyncHandler(async (req, res,sendResponse=true) => {
 ////////////////////////////return////////////////////////////////
 ////////////////////////////return////////////////////////////////
 ////////////////////////////return////////////////////////////////
-    
+    console.log(video);
     if(sendResponse) {
         return res.status(200).json(
             new ApiResponse(200,video,"good health publishAVideo")

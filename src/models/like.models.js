@@ -1,23 +1,23 @@
 import mongoose,{Schema} from "mongoose";
-import { User } from "./user.models";
+// import { User } from "../models/user.models";
 
 const likeSchema=new Schema({
 
     comment:{
         type:Schema.Types.ObjectId,
-        ref:Comment
+        ref:"Comment"
     },
     video:{
         type:Schema.Types.ObjectId,
-        ref:Video
+        ref:"Video"
     },
     likedBy:{
         type:Schema.Types.ObjectId,
-        ref:User
+        ref:"User"
     },
     tweet:{
         type:Schema.Types.ObjectId,
-        ref:Tweet
+        ref:"Tweet"
     }
 
     

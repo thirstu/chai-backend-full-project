@@ -4,9 +4,9 @@ import {asyncHandler} from "../utills/asyncHandler.js"
 import { v2 as cloudinary } from "cloudinary"
 
 
-const healthcheck = asyncHandler(async (req, res) => {
+const healthCheck = asyncHandler(async (req, res) => {
     const data=req.body;
-    //TODO: build a healthcheck response that simply returns the OK status as json with a message
+    //TODO: build a healthCheck response that simply returns the OK status as json with a message
     cloudinary.api.ping().then((callback)=>{
         console.log(callback);
     }).catch((error) => {
@@ -20,6 +20,5 @@ const healthcheck = asyncHandler(async (req, res) => {
 })
 
 export {
-    healthcheck
+    healthCheck
     }
-    

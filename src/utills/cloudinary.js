@@ -28,6 +28,38 @@ const cloudinaryPublicId = (path)=>{
   
     }
 
+
+    ////to create a new folder
+    const cloudinaryNewFolder= async (folderName)=>{
+       try {
+        ////////////////////////
+        if(!folderName)return;
+        ///////////////////////////
+        const createFolder=await cloudinary.api.create_folder(folderName);
+        console.log(
+            createFolder
+        );
+        return createFolder;
+       } catch (err) {
+        console.error(err);
+       }
+    };
+
+       ////to remove a folder
+    const cloudinaryRemoveFolder= async (folderName)=>{
+        try {
+         ////////////////////////
+        if(!folderName)return;
+         ///////////////////////////
+        const removeFolder=await cloudinary.api.delete_folder(folderName);
+        console.log(
+            removeFolder
+        );
+        return removeFolder;
+        } catch (err) {
+        console.error(err);
+        }
+    };
 ////uploading file on cloudinary
 const uploadOnCloudinary= async (localFilePath,folder,userId)=>{
 
@@ -121,7 +153,7 @@ const removeFromCloudinary= async (oldFilesId,folder,resourceType)=>{
 
 } 
 
-export {uploadOnCloudinary,removeFromCloudinary,cloudinaryPublicId}
+export {uploadOnCloudinary,removeFromCloudinary,cloudinaryPublicId,cloudinaryNewFolder,cloudinaryRemoveFolder}
 
  // Upload an image
 //  const uploadResult = await cloudinary.uploader

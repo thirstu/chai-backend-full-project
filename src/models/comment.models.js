@@ -1,7 +1,7 @@
 import mongoose,{Schema} from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
-import { User } from "./user.models";
+import { User } from "./user.models.js";
 
 const commentSchema=new Schema({
 
@@ -10,13 +10,17 @@ const commentSchema=new Schema({
         required:true,
         
     },
-    video:{
+    videoId:{
         type:Schema.Types.ObjectId,
-        ref:Video
+        ref:"Video",
+        required:true,
+
     },
     owner:{
         type:Schema.Types.ObjectId,
-        ref:User
+        ref:"User",
+        required:true,
+
     }
 },{timestamps:true});
 

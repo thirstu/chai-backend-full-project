@@ -582,44 +582,76 @@ console.log(req.params);
 
   /**
    * 
+   * The word "aggregate" has multiple meanings: 
+To collect or gather
+To bring together or collect into a mass or whole, such as "The census data were aggregated by gender". Synonyms of "aggregate" include "gather", "accumulate", "amass", and "assemble". 
+To amount to
+To total or amount to a whole sum, such as "The guns captured will aggregate five or six hundred". 
   // User.find({username})
   //Syntax: The aggregate() method is used to run an aggregation pipeline on a collection
   */
   const channel=await User.aggregate([
     ////($match)Filters documents based on a specified condition
     {
+      /**
+       * Filters users in the User collection by matching the username, ensuring the search is case-insensitive by converting the username to lowercase.
+       */
       $match:{
         username: username?.toLowerCase()
       }
     },
     {
-      ////looking up Performs a left outer join with another collection
+      ////lookup Performs a left outer join with another collection
       $lookup:{
         ////from where to look
-        from:"subscriptions",
+        ////Subscription schema =subscriptions
+        from:"subscriptions", 
         ////to whom
+        /////localField = subscriber's obj id
         localField:"_id",
         ////
+
         foreignField:"channel",
         as:"mySubscribers"
-
+/**
+ * This performs a left outer join with the subscriptions collection.
+  localField: "_id" refers to the user’s _id, and foreignField: "channel" refers to the channel's _id in the subscriptions collection.
+  as: "mySubscribers" stores the result in the mySubscribers field, which will be an array of subscribers.
+ */
       }
     },
     {
       ////looking up Performs a left outer join with another collection
 
+      /**
+       *       $lookup: {
+                from: "videos",        // Specify the collection to join with
+                localField: "video",   // The field in the 'Like' collection
+                foreignField: "_id",   // The field in the 'videos' collection
+                as: "videoDetails"     // The output field name for the video details
+       */
       $lookup:{
+        ////Subscription schema =subscriptions
+        /////from=collection to join
         from:"subscriptions",
+        /////localField = channel's obj id====current object id ====user id
+
         localField:"_id",
+
+        /////
         foreignField:"subscriber",
         as:"subscribedTo"
+        /**
+         * A similar join to the previous one, but this time, it checks which channels the current user has subscribed to.
+        foreignField: "subscriber" matches the subscriber field in the subscriptions collection with the current user’s _id.
+         */
       }
     },
     {
       ////Adds new fields to documents or modifies existing fields
       $addFields:{
         subscribersCount:{
-          $size:{$ifNull:["$subscribers",[]]}// Ensure it's an array
+          $size:{$ifNull:["$mySubscribers",[]]}// Ensure it's an array
         },
         channelsSubscribedToCount:{
           /**
@@ -719,6 +751,7 @@ on the `_id` field. It is creating a filter to match documents where the `_id` f
     }
   ])
 
+  console.log(user);
   return res
   .status(200)
   .json(
